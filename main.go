@@ -8,7 +8,10 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	fmt.Print("starting server...")
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+
+	// logoPath := "/assets/logo.png"
+	fs := http.FileServer(http.Dir("assets"))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", fs))
 	http.ListenAndServe(":8080", mux)
 
 }
