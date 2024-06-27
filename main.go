@@ -55,7 +55,26 @@ func (cfg *apiConfig) validateChrip(w http.ResponseWriter, r *http.Request) {
 	if len(params.Body) <= 140 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		json.NewEncoder(w).Encode(map[string]bool{"valid": true})
+		// json.NewEncoder(w).Encode(map[string]bool{"valid": true})
+		badWords := []string{"kerfuffle", "sharbert", "fornax"}
+		words := strings.Split(params.Body, " ")
+		cleanedWords := []string{}
+		for _, word := range words {
+			isProfane := false
+			for _, badWord := range badWords {
+				if strings.ToLower(word) == badWord {
+					cleanedWords = append(cleanedWords, "****")
+					isProfane = true
+					break
+				}
+			}
+			if !isProfane {
+				cleanedWords = append(cleanedWords, word)
+			}
+		}
+		cleanedBody := strings.Join(cleanedWords, " ")
+		response := map[string]string{"cleaned_body": cleanedBody}
+		json.NewEncoder(w).Encode(response)
 
 	} else {
 		w.Header().Set("Content-Type", "application/json")
@@ -63,20 +82,6 @@ func (cfg *apiConfig) validateChrip(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Chirp is too long"})
 	}
 
-}
-
-func (cfg *apiConfig) cleanUpChirp(w http.ResponseWriter, r *http.Request) {
-	badWords := []string{"kerfuffle", "sharbert", "fornax"}
-	body := validateChrip(w, r)
-	cleanBody := strings.ToLower(body)
-	words := strings.Fields(cleanBody)
-	for i, word := range words {
-		for _, badWord := range badWords {
-			if word == badWord {
-				words[i] = "****"
-			}
-		}
-	}
 }
 
 func (cfg *apiConfig) handleMetrics(w http.ResponseWriter, r *http.Request) {
